@@ -944,42 +944,63 @@ public class DefaultDrawingView
         }
     }
 
-    /**
-     * Validates the handles.
-     */
-    private void validateHandles() {
-        // Validate handles only, if they are invalid, and if
-        // the DrawingView has a DrawingEditor.
-        if (!handlesAreValid && getEditor() != null) {
-            handlesAreValid = true;
-            selectionHandles.clear();
-            Rectangle invalidatedArea = null;
-            while (true) {
-                for (Figure figure : getSelectedFigures()) {
-                    for (Handle handle : figure.createHandles(detailLevel)) {
-                        handle.setView(this);
-                        selectionHandles.add(handle);
-                        handle.addHandleListener(eventHandler);
-                        if (invalidatedArea == null) {
-                            invalidatedArea = handle.getDrawingArea();
-                        } else {
-                            invalidatedArea.add(handle.getDrawingArea());
-                        }
-                    }
-                }
-                if (selectionHandles.size() == 0 && detailLevel != 0) {
-                    // No handles are available at the desired detail level.
-                    // Retry with detail level 0.
-                    detailLevel = 0;
-                    continue;
-                }
-                break;
-            }
-            if (invalidatedArea != null) {
-                repaint(invalidatedArea);
+/**
+ * Validates the handles.
+ */
+private void validateHandles() {
+    // Validate handles only if they are invalid and if
+    // the DrawingView has a DrawingEditor.
+    if (handlesAreValid || getEditor() == null) {
+        return;
+    }
+
+    handlesAreValid = true;
+    selectionHandles.clear();
+
+    Rectangle invalidatedArea;
+    while (true) {
+        invalidatedArea = populateSelectionHandles();
+
+        if (selectionHandles.size() == 0 && detailLevel != 0) {
+            // No handles are available at the desired detail level.
+            // Retry with detail level 0.
+            detailLevel = 0;
+            continue;
+        }
+
+        break;
+    }
+
+    if (invalidatedArea != null) {
+        repaint(invalidatedArea);
+    }
+}
+
+/**
+ * Populates selection handles from the currently selected figures.
+ *
+ * @return the union of the handle drawing areas, or null if no handles were created
+ */
+private Rectangle populateSelectionHandles() {
+    Rectangle invalidatedArea = null;
+
+    for (Figure figure : getSelectedFigures()) {
+        for (Handle handle : figure.createHandles(detailLevel)) {
+            handle.setView(this);
+            selectionHandles.add(handle);
+            handle.addHandleListener(eventHandler);
+
+            Rectangle handleArea = handle.getDrawingArea();
+            if (invalidatedArea == null) {
+                invalidatedArea = handleArea;
+            } else {
+                invalidatedArea.add(handleArea);
             }
         }
     }
+
+    return invalidatedArea;
+}
 
     /**
      * Finds a handle at a given coordinates.
