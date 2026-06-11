@@ -23,6 +23,11 @@ import org.jhotdraw.draw.handle.Handle;
  * <code>SelectionTool</code>. It comes into action, when the user presses
  * the mouse button over the background of a <code>Drawing</code>.
  * <p>
+ * By default, dragging a selection rectangle selects only the figures that
+ * are fully enclosed within it. Holding down the Alt key while releasing the
+ * mouse button switches to intersect mode, which additionally selects
+ * figures that are merely overlapped by the rectangle.
+ * <p>
  * Design pattern:<br>
  * Name: Chain of Responsibility.<br>
  * Role: Handler.<br>
@@ -81,7 +86,7 @@ public class DefaultSelectAreaTracker extends AbstractTool implements SelectArea
 
     @Override
     public void mouseReleased(MouseEvent evt) {
-        selectGroup();
+        selectGroup(evt.isAltDown());
         clearRubberBand();
     }
 
@@ -157,8 +162,25 @@ public class DefaultSelectAreaTracker extends AbstractTool implements SelectArea
         }
     }
 
-    private void selectGroup() {
-        Collection<Figure> figures = getView().findFiguresWithin(rubberband);
+    /**
+     * Adds the figures enclosed by the rubberband to the current selection.
+     * <p>
+     * By default, only figures that are fully contained within the
+     * rubberband are selected ({@link DrawingView#findFiguresWithin}).
+     * If {@code intersectMode} is {@code true} (the user held down the Alt
+     * key while releasing the mouse button), figures that merely overlap
+     * the rubberband are selected as well ({@link DrawingView#findFigures}).
+     *
+     * @param intersectMode whether figures intersecting (rather than fully
+     * enclosed by) the rubberband should also be selected.
+     */
+    // Package-private (was private) so DefaultSelectAreaTrackerTest can
+    // exercise this method directly without going through the full
+    // Swing mouse-event dispatch chain.
+    void selectGroup(boolean intersectMode) {
+        Collection<Figure> figures = intersectMode
+                ? getView().findFigures(rubberband)
+                : getView().findFiguresWithin(rubberband);
         for (Figure f : figures) {
             if (f.isSelectable()) {
                 getView().addToSelection(f);
