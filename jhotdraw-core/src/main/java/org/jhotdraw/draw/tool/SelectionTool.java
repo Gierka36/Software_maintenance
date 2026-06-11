@@ -146,6 +146,17 @@ public class SelectionTool extends AbstractTool {
         return isSelectBehindEnabled;
     }
 
+    /**
+     * Returns true if this tool currently has an enabled {@code DrawingView}
+     * to interact with.
+     * <p>
+     * Extracted to remove the {@code getView() != null && getView().isEnabled()}
+     * guard duplicated across every input-event handler in this class.
+     */
+    private boolean isViewActive() {
+        return getView() != null && getView().isEnabled();
+    }
+
     @Override
     public void activate(DrawingEditor editor) {
         super.activate(editor);
@@ -160,35 +171,35 @@ public class SelectionTool extends AbstractTool {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (getView() != null && getView().isEnabled()) {
+        if (isViewActive()) {
             tracker.keyPressed(e);
         }
     }
 
     @Override
     public void keyReleased(KeyEvent evt) {
-        if (getView() != null && getView().isEnabled()) {
+        if (isViewActive()) {
             tracker.keyReleased(evt);
         }
     }
 
     @Override
     public void keyTyped(KeyEvent evt) {
-        if (getView() != null && getView().isEnabled()) {
+        if (isViewActive()) {
             tracker.keyTyped(evt);
         }
     }
 
     @Override
     public void mouseClicked(MouseEvent evt) {
-        if (getView() != null && getView().isEnabled()) {
+        if (isViewActive()) {
             tracker.mouseClicked(evt);
         }
     }
 
     @Override
     public void mouseDragged(MouseEvent evt) {
-        if (getView() != null && getView().isEnabled()) {
+        if (isViewActive()) {
             tracker.mouseDragged(evt);
         }
     }
@@ -212,7 +223,7 @@ public class SelectionTool extends AbstractTool {
 
     @Override
     public void mouseReleased(MouseEvent evt) {
-        if (getView() != null && getView().isEnabled()) {
+        if (isViewActive()) {
             tracker.mouseReleased(evt);
         }
     }
@@ -224,7 +235,7 @@ public class SelectionTool extends AbstractTool {
 
     @Override
     public void mousePressed(MouseEvent evt) {
-        if (getView() != null && getView().isEnabled()) {
+        if (isViewActive()) {
             super.mousePressed(evt);
             DrawingView view = getView();
             Handle handle = view.findHandle(anchor);
