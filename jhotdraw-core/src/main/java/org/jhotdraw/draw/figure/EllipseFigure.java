@@ -23,6 +23,9 @@ import org.jhotdraw.geom.Geom;
 public class EllipseFigure extends AbstractAttributedFigure {
 
     private static final long serialVersionUID = 1L;
+
+    private static final double MINIMUM_ELLIPSE_DIMENSION = 0.1;
+
     protected Ellipse2D.Double ellipse;
 
     /**
@@ -79,12 +82,12 @@ public class EllipseFigure extends AbstractAttributedFigure {
 
     @Override
     protected void drawFill(Graphics2D g) {
-        Ellipse2D.Double r = (Ellipse2D.Double) ellipse.clone();
-        double grow = AttributeKeys.getPerpendicularFillGrowth(this, AttributeKeys.getScaleFactorFromGraphics(g));
-        r.x -= grow;
-        r.y -= grow;
-        r.width += grow * 2;
-        r.height += grow * 2;
+        double grow = AttributeKeys.getPerpendicularFillGrowth(
+                this,
+                AttributeKeys.getScaleFactorFromGraphics(g));
+
+        Ellipse2D.Double r = createGrownEllipse(grow);
+
         if (r.width > 0 && r.height > 0) {
             g.fill(r);
         }
@@ -92,12 +95,12 @@ public class EllipseFigure extends AbstractAttributedFigure {
 
     @Override
     protected void drawStroke(Graphics2D g) {
-        Ellipse2D.Double r = (Ellipse2D.Double) ellipse.clone();
-        double grow = AttributeKeys.getPerpendicularDrawGrowth(this, AttributeKeys.getScaleFactorFromGraphics(g));
-        r.x -= grow;
-        r.y -= grow;
-        r.width += grow * 2;
-        r.height += grow * 2;
+        double grow = AttributeKeys.getPerpendicularDrawGrowth(
+                this,
+                AttributeKeys.getScaleFactorFromGraphics(g));
+
+        Ellipse2D.Double r = createGrownEllipse(grow);
+
         if (r.width > 0 && r.height > 0) {
             g.draw(r);
         }
@@ -108,21 +111,28 @@ public class EllipseFigure extends AbstractAttributedFigure {
      */
     @Override
     public boolean contains(Point2D.Double p) {
-        Ellipse2D.Double r = (Ellipse2D.Double) ellipse.clone();
         double grow = AttributeKeys.getPerpendicularHitGrowth(this, 1.0);
+        Ellipse2D.Double r = createGrownEllipse(grow);
+        return r.contains(p);
+    }
+
+    private Ellipse2D.Double createGrownEllipse(double grow) {
+        Ellipse2D.Double r = (Ellipse2D.Double) ellipse.clone();
         r.x -= grow;
         r.y -= grow;
         r.width += grow * 2;
         r.height += grow * 2;
-        return r.contains(p);
+        return r;
     }
 
     @Override
     public void setBounds(Point2D.Double anchor, Point2D.Double lead) {
         ellipse.x = Math.min(anchor.x, lead.x);
         ellipse.y = Math.min(anchor.y, lead.y);
-        ellipse.width = Math.max(0.1, Math.abs(lead.x - anchor.x));
-        ellipse.height = Math.max(0.1, Math.abs(lead.y - anchor.y));
+        ellipse.width = Math.max(MINIMUM_ELLIPSE_DIMENSION,
+                Math.abs(lead.x - anchor.x));
+        ellipse.height = Math.max(MINIMUM_ELLIPSE_DIMENSION,
+                Math.abs(lead.y - anchor.y));
     }
 
     /**
