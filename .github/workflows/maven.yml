@@ -2,9 +2,9 @@ name: Java CI with Maven
 
 on:
   pull_request:
-    branches: [ "develop", "main" ]
+    branches: [ "develop"]
   push:
-    branches: [ "develop", "main" ]
+    branches: [ "GerardasAlutis_Undo/Redo" ]
 
 jobs:
   build:
